@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/rotoscoping",
+      "destination": "/rotoscoping.html"
+    },
+    {
+      "source": "/solar-system",
+      "destination": "/solar-system.html"
+    }
+  ]
+}
