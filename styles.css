@@ -1,0 +1,297 @@
+:root {
+  --bg-deep: #061821;
+  --bg-mid: #103449;
+  --accent: #f2c14e;
+  --accent-2: #4fd1c5;
+  --text-main: #f4f7f8;
+  --text-soft: #d3dee3;
+  --card: rgba(8, 25, 35, 0.75);
+  --border: rgba(242, 193, 78, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--text-main);
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 8% 15%, rgba(242, 193, 78, 0.15), transparent 25%),
+    radial-gradient(circle at 85% 25%, rgba(79, 209, 197, 0.2), transparent 28%),
+    linear-gradient(130deg, var(--bg-deep), var(--bg-mid));
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 5vw;
+  background: rgba(3, 12, 18, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Syne", "Trebuchet MS", sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.brand-text {
+  line-height: 1;
+}
+
+.brand-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border: 0;
+  background: transparent;
+}
+
+.site-nav {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.site-nav a:hover {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.site-nav a.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+main {
+  width: min(1200px, 92vw);
+  margin: 26px auto 40px;
+  display: grid;
+  gap: 26px;
+}
+
+.site-footer {
+  width: min(1200px, 92vw);
+  margin: 0 auto 24px;
+  padding: 10px 0;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.panel {
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+  animation: rise 0.6s ease both;
+}
+
+.home-panel h1,
+.rotoscoping-panel h2,
+.solar-panel h2,
+.weekly-progress h3,
+.featured-video h3 {
+  font-family: "Syne", "Trebuchet MS", sans-serif;
+  margin-top: 0;
+}
+
+.home-panel p,
+.solar-panel p {
+  max-width: 70ch;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.quick-links a {
+  text-decoration: none;
+  color: #0b1d28;
+  background: var(--accent);
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.quick-links a:hover {
+  background: var(--accent-2);
+}
+
+.video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #000;
+}
+
+.video-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-frame.large {
+  border-width: 2px;
+}
+
+.weekly-progress {
+  margin-top: 24px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.week-card {
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(6, 20, 29, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.week-card h4 {
+  margin: 0 0 10px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.planetary-profiles {
+  margin-top: 24px;
+}
+
+.planetary-profiles h3 {
+  font-family: "Syne", "Trebuchet MS", sans-serif;
+}
+
+.planet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.planet-card {
+  margin: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(8, 25, 35, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.planet-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  box-shadow: inset -8px -8px 14px rgba(0, 0, 0, 0.35), 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+.planet-card h4 {
+  margin: 0 0 8px;
+  color: var(--accent);
+}
+
+.planet-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: var(--text-soft);
+  line-height: 1.45;
+  font-size: 0.94rem;
+}
+
+.planet-card li + li {
+  margin-top: 4px;
+}
+
+.planet-icon.mercury { background: radial-gradient(circle at 30% 30%, #c9c9c9, #7b7b7b); }
+.planet-icon.venus { background: radial-gradient(circle at 35% 30%, #f7cf8f, #c17a32); }
+.planet-icon.earth { background: radial-gradient(circle at 33% 30%, #4ec9ff, #2454b3); }
+.planet-icon.mars { background: radial-gradient(circle at 35% 30%, #ff9f72, #9f3f20); }
+.planet-icon.jupiter { background: radial-gradient(circle at 30% 30%, #f9d3a9, #b98353); }
+.planet-icon.saturn { background: radial-gradient(circle at 30% 30%, #f8de9b, #bfa15b); }
+.planet-icon.uranus { background: radial-gradient(circle at 35% 30%, #abf1ff, #55adc3); }
+.planet-icon.neptune { background: radial-gradient(circle at 35% 30%, #89b8ff, #3356c7); }
+.planet-icon.pluto { background: radial-gradient(circle at 35% 30%, #c8baab, #7c6f64); }
+
+@keyframes rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .planet-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .planet-grid {
+    grid-template-columns: 1fr;
+  }
+}
