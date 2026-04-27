@@ -1,14 +1,3 @@
-:root {
-  --bg-deep: #061821;
-  --bg-mid: #103449;
-  --accent: #f2c14e;
-  --accent-2: #4fd1c5;
-  --text-main: #f4f7f8;
-  --text-soft: #d3dee3;
-  --card: rgba(8, 25, 35, 0.75);
-  --border: rgba(242, 193, 78, 0.45);
-}
-
 * {
   box-sizing: border-box;
 }
@@ -19,12 +8,12 @@ html {
 
 body {
   margin: 0;
-  color: var(--text-main);
+  color: #f4f7f8;
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
   background:
     radial-gradient(circle at 8% 15%, rgba(242, 193, 78, 0.15), transparent 25%),
     radial-gradient(circle at 85% 25%, rgba(79, 209, 197, 0.2), transparent 28%),
-    linear-gradient(130deg, var(--bg-deep), var(--bg-mid));
+    linear-gradient(130deg, #061821, #103449);
 }
 
 .site-header {
@@ -47,7 +36,7 @@ body {
   font-size: 1.2rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: #f2c14e;
 }
 
 .brand-text {
@@ -69,7 +58,7 @@ body {
 }
 
 .site-nav a {
-  color: var(--text-main);
+  color: #f4f7f8;
   text-decoration: none;
   font-weight: 600;
   border-bottom: 2px solid transparent;
@@ -77,13 +66,13 @@ body {
 }
 
 .site-nav a:hover {
-  color: var(--accent-2);
-  border-color: var(--accent-2);
+  color: #4fd1c5;
+  border-color: #4fd1c5;
 }
 
 .site-nav a.active {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: #f2c14e;
+  border-color: #f2c14e;
 }
 
 main {
@@ -100,7 +89,7 @@ main {
   margin: 0 auto 24px;
   padding: 10px 0;
   text-align: center;
-  color: var(--text-soft);
+  color: #d3dee3;
   font-size: 0.92rem;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
@@ -112,7 +101,7 @@ main {
 .panel {
   padding: 28px;
   border-radius: 16px;
-  background: var(--card);
+  background: rgba(8, 25, 35, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
   animation: rise 0.6s ease both;
@@ -130,7 +119,7 @@ main {
 .home-panel p,
 .solar-panel p {
   max-width: 70ch;
-  color: var(--text-soft);
+  color: #d3dee3;
   line-height: 1.7;
 }
 
@@ -144,14 +133,14 @@ main {
 .quick-links a {
   text-decoration: none;
   color: #0b1d28;
-  background: var(--accent);
+  background: #f2c14e;
   padding: 10px 14px;
   border-radius: 999px;
   font-weight: 700;
 }
 
 .quick-links a:hover {
-  background: var(--accent-2);
+  background: #4fd1c5;
 }
 
 .video-frame {
@@ -161,7 +150,7 @@ main {
   padding-top: 56.25%;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(242, 193, 78, 0.45);
   background: #000;
 }
 
@@ -200,7 +189,7 @@ main {
 
 .week-card h4 {
   margin: 0 0 10px;
-  color: var(--accent);
+  color: #f2c14e;
   letter-spacing: 0.02em;
 }
 
@@ -236,14 +225,14 @@ main {
 
 .planet-card h4 {
   margin: 0 0 8px;
-  color: var(--accent);
+  color: #f2c14e;
 }
 
 .planet-card ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  color: var(--text-soft);
+  color: #d3dee3;
   line-height: 1.45;
   font-size: 0.94rem;
 }
