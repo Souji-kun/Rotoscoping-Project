@@ -33,6 +33,15 @@ SUN_EMISSION_STRENGTH = 2.2
 CORONA_EMISSION_STRENGTH = 2.5
 FLARE_SHELL_SCALE = 1.15
 
+# Quality tuning to reduce shimmer and pixelation in motion.
+TEXTURE_INTERPOLATION = "Cubic"
+CYCLES_PREVIEW_SAMPLES = 128
+CYCLES_RENDER_SAMPLES = 256
+EEVEE_TAA_VIEWPORT_SAMPLES = 32
+EEVEE_TAA_RENDER_SAMPLES = 128
+CAMERA_CLIP_START = 0.01
+CAMERA_CLIP_END = 5000.0
+
 
 def _set_input_value(node, socket_name, value):
     sock = node.inputs.get(socket_name)
@@ -174,9 +183,11 @@ def build_sun_material_simple(texture_path):
             img = bpy.data.images.load(texture_path, check_existing=True)
             tex.image = img
             tex.extension = "REPEAT"
-            tex.interpolation = "Linear"
+            tex.interpolation = TEXTURE_INTERPOLATION
             if hasattr(img, "colorspace_settings"):
                 img.colorspace_settings.name = "sRGB"
+            if hasattr(img, "alpha_mode"):
+                img.alpha_mode = "NONE"
 
             _link_if_possible(links, texcoord.outputs.get("UV"), tex.inputs.get("Vector"))
             _link_if_possible(links, tex.outputs.get("Color"), bsdf.inputs.get("Base Color"))
@@ -200,11 +211,13 @@ def build_sun_material_simple(texture_path):
 def make_camera_and_lights():
     """Setup camera and fill lights for solar rendering."""
     cam_data = bpy.data.cameras.new("SolarCam_Data")
+    cam_data.clip_start = CAMERA_CLIP_START
+    cam_data.clip_end = CAMERA_CLIP_END
     cam = bpy.data.objects.new("SolarCam", cam_data)
     target_collection = bpy.context.collection or bpy.context.scene.collection
     target_collection.objects.link(cam)
-    cam.location = (0.0, -40.0, 15.0)
-    cam.rotation_euler = (math.radians(75), 0.0, 0.0)
+    cam.location = (0.0, -34.0, 13.0)
+    cam.rotation_euler = (math.radians(74), 0.0, 0.0)
     bpy.context.scene.camera = cam
 
     # Key light: subtle fill to avoid complete darkness on backfaces
@@ -259,14 +272,26 @@ def configure_render():
         print("[INFO] Using Cycles render engine")
         
         # Cycles settings for faster preview
-        scene.cycles.samples = 32
+        scene.cycles.preview_samples = CYCLES_PREVIEW_SAMPLES
+        scene.cycles.samples = CYCLES_RENDER_SAMPLES
         scene.cycles.use_denoising = True
+        if hasattr(scene.cycles, "use_preview_denoising"):
+            scene.cycles.use_preview_denoising = True
+        if hasattr(scene.cycles, "pixel_filter_type"):
+            scene.cycles.pixel_filter_type = "GAUSSIAN"
+        if hasattr(scene.cycles, "filter_width"):
+            scene.cycles.filter_width = 1.5
     except Exception as ex:
         print(f"[WARN] Cycles not available, trying Eevee: {ex}")
         try:
             scene.render.engine = "BLENDER_EEVEE_NEXT"
         except:
             scene.render.engine = "BLENDER_EEVEE"
+        if hasattr(scene, "eevee"):
+            if hasattr(scene.eevee, "taa_samples"):
+                scene.eevee.taa_samples = EEVEE_TAA_VIEWPORT_SAMPLES
+            if hasattr(scene.eevee, "taa_render_samples"):
+                scene.eevee.taa_render_samples = EEVEE_TAA_RENDER_SAMPLES
 
 
 def build_sun_scene(clear_existing=True):
