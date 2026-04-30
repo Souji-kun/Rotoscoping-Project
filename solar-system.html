@@ -40,6 +40,57 @@
         </div>
       </div>
 
+      <section class="planet-age-calculator" aria-labelledby="planet-age-heading">
+        <div class="calculator-copy">
+          <h3 id="planet-age-heading">Planet Age Calculator</h3>
+          <p>Enter your Earth age to see how many years you would be on each major world in the solar system.</p>
+        </div>
+        <div class="calculator-controls">
+          <label class="sr-only" for="earthAge">Earth age</label>
+          <input id="earthAge" name="earthAge" type="number" min="0.1" step="0.1" placeholder="Enter your Earth age" />
+          <button type="button" id="calculatePlanetAges">Calculate</button>
+        </div>
+        <p class="calculator-feedback" id="ageCalculatorFeedback" aria-live="polite">Results will appear below after you calculate.</p>
+        <div class="age-results-grid">
+          <article class="age-result-card">
+            <h4>Mercury</h4>
+            <p id="mercury-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Venus</h4>
+            <p id="venus-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Earth</h4>
+            <p id="earth-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Mars</h4>
+            <p id="mars-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Jupiter</h4>
+            <p id="jupiter-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Saturn</h4>
+            <p id="saturn-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Uranus</h4>
+            <p id="uranus-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Neptune</h4>
+            <p id="neptune-age">-</p>
+          </article>
+          <article class="age-result-card">
+            <h4>Pluto</h4>
+            <p id="pluto-age">-</p>
+          </article>
+        </div>
+      </section>
+
       <div class="planetary-profiles">
         <h3>Celestial Body Profiles</h3>
         <div class="planet-grid">
@@ -231,5 +282,47 @@
   <footer class="site-footer">
     <p>For academic purpose only</p>
   </footer>
+
+  <script>
+    const planetOrbitalPeriods = {
+      mercury: 0.24,
+      venus: 0.62,
+      earth: 1,
+      mars: 1.88,
+      jupiter: 11.86,
+      saturn: 29.46,
+      uranus: 84.01,
+      neptune: 164.8,
+      pluto: 248.6
+    };
+
+    function calculatePlanetAges() {
+      const ageInput = document.getElementById("earthAge");
+      const feedback = document.getElementById("ageCalculatorFeedback");
+      const earthAge = Number.parseFloat(ageInput.value);
+
+      if (!Number.isFinite(earthAge) || earthAge <= 0) {
+        feedback.textContent = "Please enter a valid age greater than zero.";
+        return;
+      }
+
+      feedback.textContent = "Your solar system age comparison is ready.";
+
+      Object.entries(planetOrbitalPeriods).forEach(([planet, orbitalPeriod]) => {
+        const result = (earthAge / orbitalPeriod).toFixed(2);
+        const resultNode = document.getElementById(`${planet}-age`);
+        if (resultNode) {
+          resultNode.textContent = `${result} years`;
+        }
+      });
+    }
+
+    document.getElementById("calculatePlanetAges").addEventListener("click", calculatePlanetAges);
+    document.getElementById("earthAge").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        calculatePlanetAges();
+      }
+    });
+  </script>
 </body>
 </html>

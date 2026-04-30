@@ -201,6 +201,114 @@ main {
   font-family: "Syne", "Trebuchet MS", sans-serif;
 }
 
+.planet-age-calculator {
+  margin-top: 24px;
+  padding: 22px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(242, 193, 78, 0.14), transparent 28%),
+    linear-gradient(135deg, rgba(8, 25, 35, 0.96), rgba(13, 40, 55, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.calculator-copy h3 {
+  margin: 0;
+  font-family: "Syne", "Trebuchet MS", sans-serif;
+}
+
+.calculator-copy p {
+  margin: 10px 0 0;
+  max-width: 60ch;
+}
+
+.calculator-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.calculator-controls input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 13px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(4, 17, 24, 0.82);
+  color: #f4f7f8;
+  font: inherit;
+}
+
+.calculator-controls input::placeholder {
+  color: rgba(211, 222, 227, 0.72);
+}
+
+.calculator-controls input:focus {
+  outline: 2px solid rgba(79, 209, 197, 0.55);
+  outline-offset: 2px;
+}
+
+.calculator-controls button {
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f2c14e, #4fd1c5);
+  color: #08222e;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calculator-controls button:hover {
+  filter: brightness(1.05);
+}
+
+.calculator-feedback {
+  margin: 14px 0 0;
+  color: #84d7d5;
+  min-height: 1.5em;
+}
+
+.age-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.age-result-card {
+  margin: 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(4, 17, 24, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.age-result-card h4 {
+  margin: 0 0 8px;
+  color: #f2c14e;
+}
+
+.age-result-card p {
+  margin: 0;
+  color: #f4f7f8;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .planet-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -336,6 +444,10 @@ main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .age-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .planet-card {
     grid-template-columns: 1fr;
   }
@@ -353,6 +465,23 @@ main {
   }
 
   .week-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .planet-age-calculator {
+    padding: 18px;
+  }
+
+  .calculator-controls {
+    flex-direction: column;
+  }
+
+  .calculator-controls button,
+  .calculator-controls input {
+    width: 100%;
+  }
+
+  .age-results-grid {
     grid-template-columns: 1fr;
   }
 

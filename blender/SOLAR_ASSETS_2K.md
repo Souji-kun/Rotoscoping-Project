@@ -58,3 +58,26 @@ Ensure these exact filenames exist in your texture folder:
 3. Edit `TEXTURE_BASE_DIR`
 4. Run Script
 5. Press Play to watch spin + revolution animation
+
+## Normalized celestial body size and distance reference
+
+Sun visual scale is normalized to `1.0`.
+
+- `size_normalized` = `body_radius_km / sun_radius_km`
+- `distance_normalized` = `orbit_distance_km / sun_radius_km`
+- Reference constants:
+  - `sun_radius_km = 696340.0`
+  - `1 AU = 149600000.0 km`
+
+| Body | Radius (km) | Orbit (AU) | Size Normalized (Sun = 1) | Orbit Distance (km) | Distance Normalized (Sun radius = 1) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Sun | 696340.0 | 0.00 | 1.000000 | 0.0 | 0.00 |
+| Mercury | 2439.7 | 0.39 | 0.003504 | 58344000.0 | 83.79 |
+| Venus | 6051.8 | 0.72 | 0.008691 | 107712000.0 | 154.68 |
+| Earth | 6371.0 | 1.00 | 0.009149 | 149600000.0 | 214.84 |
+| Mars | 3389.5 | 1.52 | 0.004868 | 227392000.0 | 326.55 |
+| Jupiter | 69911.0 | 5.20 | 0.100398 | 777920000.0 | 1117.16 |
+| Saturn | 58232.0 | 9.58 | 0.083626 | 1433168000.0 | 2058.14 |
+| Uranus | 25362.0 | 19.20 | 0.036422 | 2872320000.0 | 4124.88 |
+| Neptune | 24622.0 | 30.05 | 0.035359 | 4495480000.0 | 6455.87 |
+| Pluto | 1188.3 | 39.48 | 0.001706 | 5906208000.0 | 8481.79 |
