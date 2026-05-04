@@ -19,6 +19,8 @@ TEXTURE_BASE_DIR = r"D:\Solar_Texture_2k"
 # Timeline
 FPS = 24
 SIM_DAYS = 365
+DURATION_SECONDS = 30
+TOTAL_FRAMES = FPS * DURATION_SECONDS
 
 # Scene scale, matched to solar_system_sim_51.py
 PLANET_RADIUS_SCALE = 0.25
@@ -244,7 +246,7 @@ def create_orbit_curve(name, radius):
 def setup_animation(planet, orbit_empty, rotation_days, orbital_days):
     scene = bpy.context.scene
     start_frame = 1
-    end_frame = SIM_DAYS * FPS
+    end_frame = TOTAL_FRAMES
     scene.frame_start = start_frame
     scene.frame_end = end_frame
 
@@ -293,7 +295,8 @@ def make_camera_and_light():
 def configure_render():
     scene = bpy.context.scene
     scene.frame_start = 1
-    scene.frame_end = SIM_DAYS * FPS
+    scene.frame_end = TOTAL_FRAMES
+    scene.render.fps = FPS
 
     try:
         scene.render.engine = "CYCLES"
