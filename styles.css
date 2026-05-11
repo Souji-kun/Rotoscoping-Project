@@ -154,7 +154,8 @@ main {
   background: #000;
 }
 
-.video-frame iframe {
+.video-frame iframe,
+.video-frame video {
   position: absolute;
   top: 0;
   right: 0;
@@ -163,6 +164,7 @@ main {
   width: 100%;
   height: 100%;
   border: 0;
+  object-fit: cover;
 }
 
 .video-frame.large {
@@ -332,9 +334,7 @@ main {
   min-height: 220px;
   padding: 22px 18px;
   border-radius: 16px;
-  background:
-    radial-gradient(circle at 30% 25%, rgba(242, 193, 78, 0.18), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  background: #000;
   border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
@@ -349,6 +349,21 @@ main {
   border-radius: 50%;
   margin-bottom: 16px;
   box-shadow: inset -14px -14px 20px rgba(0, 0, 0, 0.35), 0 0 26px rgba(255, 255, 255, 0.14);
+}
+
+.planet-icon.venus-video {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.planet-icon.venus-video video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
 }
 
 .planet-label h4,
@@ -368,8 +383,13 @@ main {
 .planet-details {
   min-width: 0;
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: auto auto 1fr;
   gap: 14px;
+}
+
+.planet-card-video {
+  padding-top: 56.25%;
+  margin: 0;
 }
 
 .planet-description {
