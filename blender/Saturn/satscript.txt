@@ -1,0 +1,176 @@
+import bpy
+import math
+import random
+from mathutils import Vector
+
+# --- Saturn Object ---
+saturn = bpy.data.objects["Saturn"]
+ring = bpy.data.objects["Ring"]
+
+# Clear old handlers if needed
+bpy.app.handlers.frame_change_pre.clear()
+
+# Saturn’s axial tilt (~26.73°)
+saturn_tilt = math.radians(26.73)
+
+# --- Global Settings ---
+ORBIT_SCALE         = 0.2
+MOON_SCALE          = 1.0
+ASTEROID_SPIN_SPEED = 200
+DELETE_ASTEROIDS    = 1
+ASTEROID_BASE_SCALE = 0.05
+AXIS_SPREAD_Y       = 1.5
+AXIS_SPREAD_Z       = 2
+
+# --- Moon Data ---
+moon_data = {
+    "Mimas":     {"scale":0.04, "orbit_radius":12, "orbit_period":24,   "rotation_period":24,   "tilt":0},
+    "Enceladus": {"scale":0.05, "orbit_radius":15, "orbit_period":32,   "rotation_period":32,   "tilt":0},
+    "Tethys":    {"scale":0.07, "orbit_radius":20, "orbit_period":40,   "rotation_period":40,   "tilt":0},
+    "Dione":     {"scale":0.08, "orbit_radius":25, "orbit_period":48,   "rotation_period":48,   "tilt":0},
+    "Rhea":      {"scale":0.10, "orbit_radius":30, "orbit_period":56,   "rotation_period":56,   "tilt":0},
+    "Titan":     {"scale":0.25, "orbit_radius":40, "orbit_period":80,   "rotation_period":80,   "tilt":0},
+    "Iapetus":   {"scale":0.20, "orbit_radius":60, "orbit_period":120,  "rotation_period":120,  "tilt":0},
+}
+
+# --- Cluster Data ---
+cluster_data = {
+    "Gallic_Cluster": {"orbit_radius": 80, "orbit_period": 300, "inclination": 35, "count": 80},
+    "Inuit_Cluster":  {"orbit_radius": 100, "orbit_period": 400, "inclination": 45, "count": 100},
+    "Norse_Cluster":  {"orbit_radius": 120, "orbit_period": 500, "inclination": 150, "count": 150},
+}
+
+# --- Delete old cluster asteroids only ---
+if DELETE_ASTEROIDS == 1:
+    for obj in list(bpy.data.objects):
+        # Delete only cluster asteroids (not the base)
+        if obj.name.startswith("A_") and "Cluster" in obj.name:
+            bpy.data.objects.remove(obj, do_unlink=True)
+
+# --- Scatter Asteroids ---
+def scatter_asteroids(cluster_name, asteroid_base_name, cdata):
+    if asteroid_base_name not in bpy.data.objects:
+        return
+    ast = bpy.data.objects[asteroid_base_name]
+
+    for i in range(cdata["count"]):
+        obj = ast.copy()
+        obj.data = ast.data
+        obj.name = f"A_{cluster_name}.{i}"   # cluster naming convention
+        bpy.context.collection.objects.link(obj)
+
+        phase = random.uniform(0, 2*math.pi)
+        obj["orbit_phase"] = phase
+        obj["orbit_radius"] = cdata["orbit_radius"] * ORBIT_SCALE
+        obj["orbit_period"] = cdata["orbit_period"]
+        obj["inclination"] = cdata["inclination"]
+
+        s = ASTEROID_BASE_SCALE * random.uniform(1, 2)
+        obj.scale = (s, s, s)
+
+        obj.rotation_euler = (
+            random.uniform(0, math.pi),
+            random.uniform(0, math.pi),
+            random.uniform(0, math.pi)
+        )
+
+        obj["offset_y"] = random.uniform(-AXIS_SPREAD_Y, AXIS_SPREAD_Y)
+        obj["offset_z"] = random.uniform(-AXIS_SPREAD_Z, AXIS_SPREAD_Z)
+
+for cname, cdata in cluster_data.items():
+    scatter_asteroids(cname, "Asteroid_Base", cdata)
+
+# --- Rotation + Orbit Handler ---
+def animate_system(scene):
+    frame = scene.frame_current
+    
+    # Saturn spin
+    spin_angle = (frame / 107) * (2 * math.pi)
+    saturn.rotation_euler = (saturn_tilt, 0.0, 0.0)
+    saturn.rotation_euler.rotate_axis("Z", spin_angle)
+    ring.rotation_euler = (saturn_tilt, 0.0, 0.0)
+    
+    # Moons + Labels (labels assumed to already exist)
+    for name, data in moon_data.items():
+        if name in bpy.data.objects:
+            moon = bpy.data.objects[name]
+            moon.scale = (data["scale"] * MOON_SCALE,) * 3
+            
+            orbit_angle = (frame / data["orbit_period"]) * (2 * math.pi)
+            moon.location.x = saturn.location.x + (data["orbit_radius"] * ORBIT_SCALE * 1.5) * math.cos(orbit_angle)
+            moon.location.y = saturn.location.y + (data["orbit_radius"] * ORBIT_SCALE * 1.0) * math.sin(orbit_angle)
+            moon.location.z = saturn.location.z
+            
+            spin_angle_moon = (frame / data["rotation_period"]) * (2 * math.pi)
+            moon.rotation_euler = (math.radians(data["tilt"]), 0.0, 0.0)
+            moon.rotation_euler.rotate_axis("Z", spin_angle_moon)
+            
+            # Move label above moon if it exists
+            label_name = f"{name}_Label"
+            if label_name in bpy.data.objects:
+                label = bpy.data.objects[label_name]
+                label.location = moon.location + Vector((0,0,2))
+            
+            # Titan Cloud follows Titan
+            if name == "Titan" and "Titan Cloud" in bpy.data.objects:
+                cloud = bpy.data.objects["Titan Cloud"]
+                cloud.location = moon.location.copy()
+                cloud.scale = (data["scale"] * MOON_SCALE * 1.02,) * 3
+                cloud.rotation_euler = moon.rotation_euler.copy()
+    
+    # Asteroids orbit Saturn individually
+    for obj in bpy.data.objects:
+        if obj.name.startswith("A_") and "Cluster" in obj.name:
+            radius = obj["orbit_radius"]
+            period = obj["orbit_period"]
+            inc = math.radians(obj["inclination"])
+            phase = obj["orbit_phase"]
+
+            orbit_angle = phase + (frame / period) * (2 * math.pi)
+            x = radius * math.cos(orbit_angle)
+            y = radius * math.sin(orbit_angle)
+            z = 0.0
+
+            z = y * math.sin(inc)
+            y = y * math.cos(inc)
+
+            y += obj["offset_y"]
+            z += obj["offset_z"]
+
+            obj.location = saturn.location + Vector((x, y, z))
+
+            spin_angle_ast = (frame / ASTEROID_SPIN_SPEED) * (2 * math.pi)
+            obj.rotation_euler.rotate_axis("Z", spin_angle_ast)
+
+    # --- Camera Switching ---
+    if "Camera1" in bpy.data.objects and "Camera2" in bpy.data.objects:
+        cam1 = bpy.data.objects["Camera1"]
+        cam2 = bpy.data.objects["Camera2"]
+
+        if frame <= 120:
+            bpy.context.scene.camera = cam1
+            active_cam = cam1
+        else:
+            bpy.context.scene.camera = cam2
+            active_cam = cam2
+            # Camera2 orbits Saturn
+            orbit_angle = (frame / 240) * (2 * math.pi)
+            radius = 100
+            height = 40
+            cam2.location = Vector((
+                saturn.location.x + radius * math.cos(orbit_angle),
+                saturn.location.y + radius * math.sin(orbit_angle),
+                saturn.location.z + height
+            ))
+            direction = saturn.location + cam2.location
+            cam2.rotation_euler = direction.to_track_quat('Z','Y').to_euler()
+
+        # Update all labels to face the active camera
+        for obj in bpy.data.objects:
+            if obj.name.endswith("_Label"):
+                for c in obj.constraints:
+                    if c.type == 'TRACK_TO':
+                        c.target = active_cam
+
+# Register handler
+bpy.app.handlers.frame_change_pre.append(animate_system)

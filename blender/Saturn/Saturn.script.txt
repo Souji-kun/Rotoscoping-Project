@@ -1,0 +1,105 @@
+import bpy
+import math
+
+# --- Saturn Object ---
+saturn = bpy.data.objects["Saturn"]
+ring = bpy.data.objects["Ring"]
+
+# Clear old handlers if needed
+bpy.app.handlers.frame_change_pre.clear()
+
+# Saturn’s axial tilt (~26.73°)
+saturn_tilt = math.radians(26.73)
+
+# --- Global Settings ---
+ORBIT_SCALE     = 0.2   # exaggerates orbit radius
+MOON_SCALE      = 1.0  # exaggerates moon size
+ORBIT_THICKNESS = 0.01  # base thickness of orbit rings (will scale with ORBIT_SCALE)
+
+# --- Moon Data ---
+moon_data = {
+    "Mimas":     {"scale":0.04, "orbit_radius":12, "orbit_period":24,   "rotation_period":24,   "tilt":0},
+    "Enceladus": {"scale":0.05, "orbit_radius":15, "orbit_period":32,   "rotation_period":32,   "tilt":0},
+    "Tethys":    {"scale":0.07, "orbit_radius":20, "orbit_period":40,   "rotation_period":40,   "tilt":0},
+    "Dione":     {"scale":0.08, "orbit_radius":25, "orbit_period":48,   "rotation_period":48,   "tilt":0},
+    "Rhea":      {"scale":0.10, "orbit_radius":30, "orbit_period":56,   "rotation_period":56,   "tilt":0},
+    "Titan":     {"scale":0.25, "orbit_radius":40, "orbit_period":80,   "rotation_period":80,   "tilt":0},
+    "Iapetus":   {"scale":0.20, "orbit_radius":60, "orbit_period":120,  "rotation_period":120,  "tilt":0},
+}
+
+# --- Orbit Ring Creation (torus mesh, skip duplicates) ---
+def create_orbit_ring(name, radius, x_scale=1.5, y_scale=1.0):
+    orbit_name = f"{name}_Orbit"
+    if orbit_name in bpy.data.objects:
+        return bpy.data.objects[orbit_name]  # reuse existing
+
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=radius * ORBIT_SCALE,
+        minor_radius=ORBIT_THICKNESS * ORBIT_SCALE,  # thickness scales with ORBIT_SCALE
+        major_segments=128,
+        minor_segments=32
+    )
+    orbit = bpy.context.active_object
+    orbit.name = orbit_name
+
+    # Scale X vs Y to make ellipse
+    orbit.scale.x *= x_scale
+    orbit.scale.y *= y_scale
+
+    # Add emission material
+    mat = bpy.data.materials.new(name=f"{orbit_name}_Mat")
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    for n in nodes:
+        nodes.remove(n)
+
+    emission = nodes.new(type="ShaderNodeEmission")
+    emission.inputs[0].default_value = (1,1,1,1)  # bright white
+    emission.inputs[1].default_value = 2.0        # glow strength
+    output = nodes.new(type="ShaderNodeOutputMaterial")
+    links.new(emission.outputs[0], output.inputs[0])
+    orbit.data.materials.append(mat)
+
+    return orbit
+
+# Create orbit rings once
+for name, data in moon_data.items():
+    create_orbit_ring(name, data["orbit_radius"])
+
+# --- Rotation + Orbit Handler ---
+def animate_system(scene):
+    frame = scene.frame_current
+    
+    # Saturn spin
+    spin_angle = (frame / 107) * (2 * math.pi)
+    saturn.rotation_euler = (saturn_tilt, 0.0, 0.0)
+    saturn.rotation_euler.rotate_axis("Z", spin_angle)
+    ring.rotation_euler = (saturn_tilt, 0.0, 0.0)
+    
+    # Moons
+    for name, data in moon_data.items():
+        if name in bpy.data.objects:
+            moon = bpy.data.objects[name]
+            moon.scale = (data["scale"] * MOON_SCALE,) * 3
+            
+            # Elliptical orbit: X stretched, Y normal
+            orbit_angle = (frame / data["orbit_period"]) * (2 * math.pi)
+            moon.location.x = saturn.location.x + (data["orbit_radius"] * ORBIT_SCALE * 1.5) * math.cos(orbit_angle)
+            moon.location.y = saturn.location.y + (data["orbit_radius"] * ORBIT_SCALE * 1.0) * math.sin(orbit_angle)
+            moon.location.z = saturn.location.z
+            
+            # Spin
+            spin_angle_moon = (frame / data["rotation_period"]) * (2 * math.pi)
+            moon.rotation_euler = (math.radians(data["tilt"]), 0.0, 0.0)
+            moon.rotation_euler.rotate_axis("Z", spin_angle_moon)
+            
+            # TitanCloud
+            if name == "Titan" and "Titan Cloud" in bpy.data.objects:
+                cloud = bpy.data.objects["Titan Cloud"]
+                cloud.scale = (data["scale"] * MOON_SCALE * 1.02,) * 3
+                cloud.location = moon.location.copy()
+                cloud.rotation_euler = moon.rotation_euler.copy()
+
+# Register handler
+bpy.app.handlers.frame_change_pre.append(animate_system)

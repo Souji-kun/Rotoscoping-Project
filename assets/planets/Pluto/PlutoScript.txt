@@ -1,0 +1,115 @@
+import bpy
+import math
+
+# --- GLOBAL SETTINGS ---
+GLOBAL_SIZE_SCALE = 0.001     # Scale all moons
+GLOBAL_ORBIT_SCALE = 1.0      # Scale orbital radii
+GLOBAL_PLUTO_SPIN = 1.0       # Pluto spin speed multiplier
+GLOBAL_MOON_SPIN = 1.0        # Moon spin speed multiplier
+GLOBAL_LABEL_SIZE = 0.5       # Base text label size
+GLOBAL_LABEL_OFFSET_Z = 1.0   # Vertical offset for labels
+
+# --- Pluto ---
+pluto = bpy.data.objects["Pluto"]
+bpy.app.handlers.frame_change_pre.clear()
+
+tilt_angle = math.radians(119.6)  # Pluto axial tilt
+
+def rotate_pluto(scene):
+    frame = scene.frame_current
+    # Pluto rotation period ~6.39 days → 1536 frames if Earth day = 240 frames
+    spin_angle = -(frame / 1536) * (2 * math.pi) * GLOBAL_PLUTO_SPIN
+    pluto.rotation_euler = (tilt_angle, 0.0, 0.0)
+    pluto.rotation_euler.rotate_axis("Z", spin_angle)
+
+bpy.app.handlers.frame_change_pre.append(rotate_pluto)
+
+# --- Pluto's Moons ---
+moons = {
+    "Charon":   {"radius": 606, "orbit": 19571, "period": 6.39, "ecc": 0.0,   "incl": 0.0},
+    "Styx":     {"radius": 10,  "orbit": 42656, "period": 20.2, "ecc": 0.005, "incl": 0.3},
+    "Nix":      {"radius": 49,  "orbit": 48694, "period": 24.9, "ecc": 0.003, "incl": 0.2},
+    "Kerberos": {"radius": 19,  "orbit": 57783, "period": 32.1, "ecc": 0.004, "incl": 0.4},
+    "Hydra":    {"radius": 31,  "orbit": 64738, "period": 38.2, "ecc": 0.005, "incl": 0.5},
+}
+
+# --- Create Labels Once ---
+for name in moons.keys():
+    label_name = f"{name}_Label"
+    if label_name not in bpy.data.objects:
+        bpy.ops.object.text_add(location=(0,0,0))
+        label = bpy.context.active_object
+        label.name = label_name
+        label.data.body = name
+        label.data.align_x = 'CENTER'
+        label.data.size = GLOBAL_LABEL_SIZE
+
+        # Add Track To constraint (target updated dynamically)
+        track = label.constraints.new(type='TRACK_TO')
+        track.track_axis = 'TRACK_Z'
+        track.up_axis = 'UP_Y'
+
+def animate_moons(scene):
+    frame = scene.frame_current
+
+    # --- Camera Switching ---
+    cam1 = bpy.data.objects.get("Camera1")
+    cam2 = bpy.data.objects.get("Camera2")
+    active_cam = None
+
+    if cam1 and cam2:
+        if frame < 2248:
+            bpy.context.scene.camera = cam1
+            active_cam = cam1
+            label_scale_factor = 2.0
+        elif 2248 <= frame <= 2440:
+            bpy.context.scene.camera = cam2
+            active_cam = cam2
+            label_scale_factor = 4.0
+        else:
+            bpy.context.scene.camera = cam2
+            active_cam = cam2
+            label_scale_factor = 1.0
+
+    for name, data in moons.items():
+        if name not in bpy.data.objects:
+            continue
+        moon = bpy.data.objects[name]
+
+        # Scale size globally
+        moon.scale = (data["radius"] * GLOBAL_SIZE_SCALE,) * 3
+
+        # Orbit angle (convert days → frames, Earth day = 240 frames)
+        orbit_frames = 240 * data["period"]
+        orbit_angle = (frame / orbit_frames) * (2 * math.pi)
+
+        # Elliptical orbit with eccentricity
+        semi_major = data["orbit"] * GLOBAL_ORBIT_SCALE / 1000
+        semi_minor = semi_major * (1 - data["ecc"])
+
+        x = math.cos(orbit_angle) * semi_major
+        y = math.sin(orbit_angle) * semi_minor
+        z = math.sin(math.radians(data["incl"])) * semi_major
+
+        moon.location = (x, y, z)
+
+        # Spin
+        if name == "Charon":
+            spin_angle = orbit_angle  # tidally locked
+        else:
+            spin_angle = (frame / (orbit_frames / 3)) * (2 * math.pi) * GLOBAL_MOON_SPIN
+        moon.rotation_euler = (0, 0, spin_angle)
+
+        # Update label
+        label_name = f"{name}_Label"
+        if label_name in bpy.data.objects:
+            label = bpy.data.objects[label_name]
+            label.location = (x, y, z + GLOBAL_LABEL_OFFSET_Z)
+            label.data.size = GLOBAL_LABEL_SIZE * label_scale_factor
+            # Update constraint target
+            for c in label.constraints:
+                if c.type == 'TRACK_TO' and active_cam:
+                    c.target = active_cam
+
+# Register moon handler
+bpy.app.handlers.frame_change_pre.append(animate_moons)

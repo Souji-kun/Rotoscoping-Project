@@ -1,0 +1,149 @@
+import bpy
+import math
+
+# --- Jupiter Object ---
+jupiter = bpy.data.objects["Jupiter"]
+
+# Clear old handlers
+bpy.app.handlers.frame_change_pre.clear()
+
+# Base scale values
+JUPITER_SCALE = 5.0
+MOON_SCALE_FACTOR = 0.5
+LABEL_SCALE = 0.5
+LABEL_OFFSET = 2.0
+GROUP_ORBIT_SCALE = 2.0
+
+# --- Blueprint for instancing small moons ---
+ASTEROID_BLUEPRINT = bpy.data.objects["Asteroid"]
+
+# --- Create a reusable white material ---
+def get_white_material():
+    mat_name = "Moon_White"
+    if mat_name in bpy.data.materials:
+        return bpy.data.materials[mat_name]
+    else:
+        mat = bpy.data.materials.new(name=mat_name)
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes.get("Principled BSDF")
+        if bsdf:
+            bsdf.inputs["Base Color"].default_value = (1, 1, 1, 1)  # pure white
+        return mat
+
+WHITE_MAT = get_white_material()
+
+# --- Moons Data ---
+moons_data = {
+    # Galilean moons (keep textures)
+    "Io": {"orbit_radius": 8.0, "orbit_period": 1.77, "rotation_period": 1.77,
+           "tilt": 0.0, "relative_size": 0.25, "label": True, "galilean": True},
+    "Europa": {"orbit_radius": 12.0, "orbit_period": 3.55, "rotation_period": 3.55,
+               "tilt": 0.1, "relative_size": 0.22, "label": True, "galilean": True},
+    "Ganymede": {"orbit_radius": 18.0, "orbit_period": 7.15, "rotation_period": 7.15,
+                 "tilt": 0.2, "relative_size": 0.40, "label": True, "galilean": True},
+    "Callisto": {"orbit_radius": 30.0, "orbit_period": 16.7, "rotation_period": 16.7,
+                 "tilt": 0.5, "relative_size": 0.36, "label": True, "galilean": True},
+
+  # Inner moons (labels + white texture)
+"Metis":    {"orbit_radius": 3.0,   "orbit_period": 0.3,  "rotation_period": 0.3,  "tilt": 0.0,   "relative_size": 0.05, "label": True, "galilean": False},
+"Adrastea": {"orbit_radius": 3.5,   "orbit_period": 0.3,  "rotation_period": 0.3,  "tilt": 0.0,   "relative_size": 0.03, "label": True, "galilean": False},
+"Amalthea": {"orbit_radius": 5.0,   "orbit_period": 0.5,  "rotation_period": 0.5,  "tilt": 0.0,   "relative_size": 0.12, "label": True, "galilean": False},
+"Thebe":    {"orbit_radius": 6.0,   "orbit_period": 0.7,  "rotation_period": 0.7,  "tilt": 0.0,   "relative_size": 0.08, "label": True, "galilean": False},
+
+# Himalia group (labels + white texture)
+"Himalia":  {"orbit_radius": 160.0, "orbit_period": 250,  "rotation_period": 250,  "tilt": 0.5,   "relative_size": 0.10, "label": True, "galilean": False},
+"Elara":    {"orbit_radius": 180.0, "orbit_period": 260,  "rotation_period": 260,  "tilt": 0.5,   "relative_size": 0.06, "label": True, "galilean": False},
+"Lysithea": {"orbit_radius": 185.0, "orbit_period": 270,  "rotation_period": 270,  "tilt": 0.5,   "relative_size": 0.04, "label": True, "galilean": False},
+"Leda":     {"orbit_radius": 200.0, "orbit_period": 280,  "rotation_period": 280,  "tilt": 0.5,   "relative_size": 0.02, "label": True, "galilean": False},
+
+# Irregular retrograde moons (labels + white texture)
+"Pasiphae": {"orbit_radius": 300.0, "orbit_period": 700,  "rotation_period": 700,  "tilt": 150.0, "relative_size": 0.05, "label": True, "galilean": False},
+"Sinope":   {"orbit_radius": 310.0, "orbit_period": 730,  "rotation_period": 730,  "tilt": 150.0, "relative_size": 0.04, "label": True, "galilean": False},
+"Carme":    {"orbit_radius": 320.0, "orbit_period": 750,  "rotation_period": 750,  "tilt": 150.0, "relative_size": 0.05, "label": True, "galilean": False},
+"Ananke":   {"orbit_radius": 340.0, "orbit_period": 780,  "rotation_period": 780,  "tilt": 150.0, "relative_size": 0.03, "label": True, "galilean": False},
+
+}
+
+# --- Label Creation ---
+def create_label(moon_name):
+    label_name = f"{moon_name}_Label"
+    if label_name in bpy.data.objects:
+        return bpy.data.objects[label_name]
+    else:
+        bpy.ops.object.text_add(location=(0,0,0))
+        text_obj = bpy.context.active_object
+        text_obj.name = label_name
+        text_obj.data.body = moon_name
+        text_obj.data.align_x = 'CENTER'
+        text_obj.data.align_y = 'CENTER'
+        text_obj.scale = (LABEL_SCALE, LABEL_SCALE, LABEL_SCALE)
+
+        cam = bpy.context.scene.camera
+        if cam:
+            constraint = text_obj.constraints.new(type='TRACK_TO')
+            constraint.target = cam
+            constraint.track_axis = 'TRACK_Z'
+            constraint.up_axis = 'UP_Y'
+        return text_obj
+
+# --- Instance Creation (only once) ---
+def create_instance(moon_name, galilean=False):
+    if moon_name in bpy.data.objects:
+        return bpy.data.objects[moon_name]
+    else:
+        inst = ASTEROID_BLUEPRINT.copy()
+        inst.name = moon_name
+        bpy.context.collection.objects.link(inst)
+        # Assign white material if non-Galilean
+        if not galilean:
+            inst.data.materials.clear()
+            inst.data.materials.append(WHITE_MAT)
+        return inst
+
+# --- Animation Handler ---
+def rotate_jupiter_and_moons(scene):
+    frame = scene.frame_current
+    
+    # Jupiter Tilt + Spin
+    tilt_angle = math.radians(3.13)
+    spin_angle = (frame / 100) * (2 * math.pi)
+    jupiter.rotation_euler = (tilt_angle, 0.0, 0.0)
+    jupiter.rotation_euler.rotate_axis("Z", spin_angle)
+    jupiter.scale = (JUPITER_SCALE,) * 3
+    
+    # Moons
+    for name, data in moons_data.items():
+        if data["galilean"]:
+            if name not in bpy.data.objects:
+                continue
+            moon = bpy.data.objects[name]
+        else:
+            moon = create_instance(name, galilean=False)
+        
+        # Orbit
+        orbit_radius = data["orbit_radius"] if data["galilean"] else data["orbit_radius"] * GROUP_ORBIT_SCALE
+        orbit_angle = (frame / (data["orbit_period"] * 20)) * (2 * math.pi)
+        moon.location.x = jupiter.location.x + orbit_radius * math.cos(orbit_angle)
+        moon.location.y = jupiter.location.y + orbit_radius * math.sin(orbit_angle)
+        moon.location.z = jupiter.location.z
+        
+        # Spin
+        spin_angle_moon = (frame / (data["rotation_period"] * 20)) * (2 * math.pi)
+        moon.rotation_euler = (math.radians(data["tilt"]), 0.0, 0.0)
+        moon.rotation_euler.rotate_axis("Z", spin_angle_moon)
+        
+        # Scale
+        if data["galilean"]:
+            moon.scale = (data["relative_size"] * MOON_SCALE_FACTOR,) * 3
+        else:
+            moon.scale = (data["relative_size"],) * 3
+        
+        # Labels for all moons now
+        if data["label"]:
+            label = create_label(name)
+            label.location = (moon.location.x,
+                              moon.location.y,
+                              moon.location.z + LABEL_OFFSET)
+
+# Register handler
+bpy.app.handlers.frame_change_pre.append(rotate_jupiter_and_moons)

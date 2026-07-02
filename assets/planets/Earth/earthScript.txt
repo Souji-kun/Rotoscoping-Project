@@ -1,0 +1,69 @@
+import bpy
+import math
+
+earth = bpy.data.objects["Earth"]
+moon = bpy.data.objects["Moon"]
+clouds = bpy.data.objects["Clouds"]
+cam1 = bpy.data.objects["Cam1"]
+cam2 = bpy.data.objects["Cam2"]
+
+bpy.app.handlers.frame_change_pre.clear()
+
+# --- Earth rotation around tilted local Z ---
+def rotate_earth(scene):
+    frame = scene.frame_current
+    tilt = math.radians(23.44)
+    spin_angle = (frame / 240) * (2 * math.pi)
+
+    earth.rotation_euler = (tilt, 0.0, 0.0)
+    earth.rotation_euler.rotate_axis("Z", spin_angle)
+
+# --- Moon orbit ---
+def orbit_moon(scene):
+    frame = scene.frame_current
+    orbit_radius = 392.0
+    t = frame / 6552.0
+    angle = t * 2 * math.pi
+    
+    moon.location.x = earth.location.x + orbit_radius * math.cos(angle)
+    moon.location.y = earth.location.y + orbit_radius * math.sin(angle)
+    moon.location.z = earth.location.z
+    moon.rotation_euler[2] = angle
+
+# --- Clouds rotation (same tilt as Earth) ---
+def rotate_clouds(scene):
+    frame = scene.frame_current
+    tilt = math.radians(23.44)
+    spin_angle = (frame / 150) * (2 * math.pi)
+
+    clouds.rotation_euler = (tilt, 0.0, 0.0)
+    clouds.rotation_euler.rotate_axis("Z", spin_angle)
+
+# --- Camera wobble effect ---
+def wobble_cameras(scene):
+    frame = scene.frame_current
+    wobble_strength = 0.2   # adjust wobble amplitude
+    wobble_speed = 0.3     # adjust wobble frequency
+
+    # Apply wobble to Cam1
+    cam1.location.x += math.sin(frame * wobble_speed) * wobble_strength
+    cam1.location.y += math.cos(frame * wobble_speed) * wobble_strength * 0.5
+
+    # Apply wobble to Cam2
+    cam2.location.x += math.sin(frame * wobble_speed + math.pi/2) * wobble_strength
+    cam2.location.y += math.cos(frame * wobble_speed + math.pi/2) * wobble_strength * 0.5
+
+# --- Camera switch ---
+def switch_camera(scene):
+    frame = scene.frame_current
+    if frame < 180:
+        bpy.context.scene.camera = cam2   # Cam2 steady + wobble for first 180 frames
+    else:
+        bpy.context.scene.camera = cam1   # Switch to Cam1 afterwards (also wobble)
+
+# Register handlers
+bpy.app.handlers.frame_change_pre.append(rotate_earth)
+bpy.app.handlers.frame_change_pre.append(orbit_moon)
+bpy.app.handlers.frame_change_pre.append(rotate_clouds)
+bpy.app.handlers.frame_change_pre.append(wobble_cameras)
+bpy.app.handlers.frame_change_pre.append(switch_camera)
