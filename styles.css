@@ -98,6 +98,31 @@ main {
   margin: 0;
 }
 
+.footer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  color: #08222e;
+  text-decoration: none;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f2c14e, #4fd1c5);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.footer-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.footer-button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
 .panel {
   padding: 28px;
   border-radius: 16px;
